@@ -1,0 +1,16 @@
+{
+    "name": "EditorTODO.Editor",
+    "references": [
+        "GUID:ec62633ea94d4e440b96230a7b9598ca"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}
