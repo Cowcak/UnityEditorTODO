@@ -1,0 +1,7 @@
+﻿{
+  "name": "Editor TODO",
+  "displayName": "Editor TODO",
+  "description": "Editor TODO management to help you keep track of unfinished tasks",
+  "version": "0.1",
+  "unity": "2019.2"
+}
