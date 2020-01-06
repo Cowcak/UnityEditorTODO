@@ -12,9 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b49140bc97d146ccacdc9275a0afd5c5, type: 3}
   m_Name: Todo Model
   m_EditorClassIdentifier: 
-  LastId: 1
-  Todos:
-  - Id: 1
-    Message: test
-    Prefab: {fileID: 0}
-    Scene: {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
+  LastId: 0
+  Todos: []
