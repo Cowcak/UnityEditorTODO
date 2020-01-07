@@ -1,0 +1,4 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <Label name="item-name" class="itemName"/>
+    <uie:ObjectField label="UXML Field" name="objectField" class="objectReference" />
+</UXML>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement name="the-container">
+        <Label class="Title" text="Create Model"/>
+        <Label class="Path" text="Path:"/>
+        <TextField label="Assets/" name="filePath" class="pathField" />
+        <Button text="Create" name="createButton" />
+        <Label class="warningMessage" />
+    </VisualElement>
+</UXML>

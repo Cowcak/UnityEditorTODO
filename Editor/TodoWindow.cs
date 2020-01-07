@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEditorTODO;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Editor
 {
@@ -13,83 +18,177 @@ namespace Editor
             window.titleContent = new GUIContent("Editor TODO");
             window.Show();
         }
+        
+        public string createAssetPath;
 
         TodoModel t;
         SerializedObject GetTarget;
         SerializedProperty ThisList;
         int ListSize;
+        private bool listenerRegistered;
+        private string ModelPath;
 
         private void OnEnable()
         {
-            t = TodoUtils.GetScriptableObject<TodoModel>();
-            GetTarget = new SerializedObject(t);
-            ThisList = GetTarget.FindProperty("Todos"); // Find the List in our script and create a refrence of it
+            AssetDatabase.Refresh();
+            LoadModel();            
+            LoadView();
         }
 
-        private void OnGUI()
+        private void LoadModel()
         {
-             //Update our list
-       
-            GetTarget.Update();
-       
-            //Choose how to display the list<> Example purposes only
-            EditorGUILayout.Space ();
-            EditorGUILayout.Space ();
-       
-            //Resize our list
-            EditorGUILayout.Space ();
-            EditorGUILayout.Space ();
-            ListSize = ThisList.arraySize;
-            ListSize = EditorGUILayout.IntField ("List Size", ListSize);
-       
-            if(ListSize != ThisList.arraySize){
-                while(ListSize > ThisList.arraySize){
-                    ThisList.InsertArrayElementAtIndex(ThisList.arraySize);
-                }
-                while(ListSize < ThisList.arraySize){
-                    ThisList.DeleteArrayElementAtIndex(ThisList.arraySize - 1);
-                }
-            }
-       
-            EditorGUILayout.Space ();
-
-            EditorGUILayout.Space ();
-            EditorGUILayout.Space ();
-       
-            //Display our list to the inspector window
-
-            int totalGames = 0;
-            for(int i = 0; i < ThisList.arraySize; i++){
-                SerializedProperty MyListRef = ThisList.GetArrayElementAtIndex(i);
-                SerializedProperty TodoMessage = MyListRef.FindPropertyRelative("Message");
-                SerializedProperty Prefab = MyListRef.FindPropertyRelative("Prefab");
-                SerializedProperty Scene = MyListRef.FindPropertyRelative("Scene");
-                SerializedProperty Id = MyListRef.FindPropertyRelative("Id");
-                
-                EditorGUILayout.SelectableLabel(Id.intValue.ToString(), EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-
-                EditorGUILayout.SelectableLabel(TodoMessage.stringValue, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                
-                if (Scene.objectReferenceValue == null)
-                {   
-                    EditorGUILayout.PropertyField(Prefab);
-                }
-                else
+            t = TodoUtils.GetScriptableObject<TodoModel>();
+            if (t != null)
+            {
+                GetTarget = new SerializedObject(t);
+                ThisList = GetTarget.FindProperty("Todos"); // Find the List in our script and create a refrence of it
+                if (!listenerRegistered)
                 {
-                    EditorGUILayout.PropertyField(Scene);
+                    t.OnChange += () =>
+                    {
+                        GetTarget = new SerializedObject(t);
+                        ThisList = GetTarget.FindProperty("Todos");
+                        LoadView();
+                    };
+                    listenerRegistered = true;
+                }
+               
+            }
+            else
+            {
+                listenerRegistered = false;
+            }
+        }
+
+        private void LoadView()
+        {
+            rootVisualElement.Clear();
+            var root = this.rootVisualElement;
+            if (t == null)
+            {
+                var view = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityEditorTODO/Editor/CreateModelDialog.uxml");
+                view.CloneTree(root);
+            
+                BindButton("createButton", CreateModel);
+                BindInput("filePath");
+            }
+            else
+            {
+                var view = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityEditorTODO/Editor/TodoList.uxml");
+                view.CloneTree(root);
+
+                var styles = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/UnityEditorTODO/Editor/TodoList.uss");
+                root.styleSheets.Add(styles);
+                
+                // Create some list of data, here simply numbers in interval [1, 1000]
+                const int itemCount = 1000;
+                var items = new List<Todo>(itemCount);
+                for (int i = 0; i < ThisList.arraySize; i++)
+                {
+                    var property = ThisList.GetArrayElementAtIndex(i);
+                    
+                    var id = property.FindPropertyRelative("Id");
+                    var todoMessage = property.FindPropertyRelative("Message");
+                    var prefab = property.FindPropertyRelative("Prefab");
+                    var scene = property.FindPropertyRelative("Scene");
+                    
+                    
+                    items.Add(new Todo()
+                    {
+                        Id = id.intValue,
+                        Message = todoMessage.stringValue,
+                        Prefab = prefab.objectReferenceValue,
+                        Scene = scene.objectReferenceValue
+                    });
                 }
 
-                EditorGUILayout.Space ();
-           
-                //Remove this index from the List
-                if(GUILayout.Button("Select")){
-                    this.SelectObject(i);
-                }
-                EditorGUILayout.Space ();
+                var item = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityEditorTODO/Editor/TodoListItem.uxml");
+                
+                // The "makeItem" function will be called as needed
+                // when the ListView needs more items to render
+                Func<VisualElement> makeItem = () => item.CloneTree();
+                
+                // As the user scrolls through the list, the ListView object
+                // will recycle elements created by the "makeItem"
+                // and invoke the "bindItem" callback to associate
+                // the element with the matching data item (specified as an index in the list)
+                Action<VisualElement, int> bindItem = (e, i) =>
+                {
+                    e.Q<Label>("item-name").text = items[i].Message;
+                    if (items[i].Scene != null)
+                    {
+                        e.Q<ObjectField>().value = items[i].Scene;
+                    }
+                    else
+                    {
+                        e.Q<ObjectField>().value = items[i].Prefab;
+                    }
+                };
+                
+                var listView = root.Q<ListView>();
+                listView.makeItem = makeItem;
+                listView.bindItem = bindItem;
+                listView.itemsSource = items;
+                listView.selectionType = SelectionType.Single;
+                
+                // Callback invoked when the user double clicks an item    
+                listView.onItemChosen += obj => this.SelectObject((Todo)obj);
+                
+                // Callback invoked when the user changes the selection inside the ListView
+                listView.onSelectionChanged += objects => Debug.Log(objects);
             }
-       
-            //Apply the changes to our list
-            GetTarget.ApplyModifiedProperties();
+        }
+
+        private void OnFocus()
+        {
+            Repaint();
+        }
+        
+        private void CreateModel()
+        {
+            var folderPath = "Assets";
+
+            if (!string.IsNullOrEmpty(createAssetPath))
+            {
+                folderPath += "/";
+                folderPath += createAssetPath;
+                
+                if (createAssetPath.Last() != '/')
+                {
+                    folderPath += "/";
+                }
+            }
+            
+            if (!AssetDatabase.IsValidFolder(folderPath))
+            {
+                var message = rootVisualElement.Q<Label>(className: "warningMessage");
+                message.text = "Path not valid:" + folderPath;
+                return;
+            }
+            
+            var model = CreateInstance(typeof(TodoModel));
+            
+            AssetDatabase.CreateAsset(model, "Assets/"+createAssetPath + "TodoModel.asset");
+            
+            Repaint();
+            LoadModel();
+            LoadView();
+        }
+        
+        void BindButton(string name, Action clickEvent)
+        {
+            var button = rootVisualElement.Q<Button>(name);
+
+            if (button != null)
+            {
+                button.clickable.clicked += clickEvent;
+            }
+        }
+
+        void BindInput(string name)
+        {
+            var input = rootVisualElement.Q<TextField>(name);
+            input?.RegisterValueChangedCallback((evt => createAssetPath = evt.newValue));
         }
     }
 }

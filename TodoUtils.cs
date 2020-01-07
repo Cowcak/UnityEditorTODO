@@ -22,27 +22,21 @@ public static class TodoUtils
             a[i] = AssetDatabase.LoadAssetAtPath<T>(path);
         }
 
-        return a.First();
+        return a.FirstOrDefault();
 #else
             return null;
 #endif
     }
 
-    public static void SelectObject(this ScriptableObject origin, int index)
+    public static void SelectObject(this ScriptableObject origin, Todo item)
     {
-        var model = TodoUtils.GetScriptableObject<TodoModel>();
-
-        if (index < model.Todos.Count)
+        if (item.Scene == null)
         {
-            var item = model.Todos[index];
-            if (item.Scene == null)
-            {
-                SelectPrefab(item);
-            }
-            else
-            {
-                SelectSceneObject(origin, item);
-            }
+            SelectPrefab(item);
+        }
+        else
+        {
+            SelectSceneObject(origin, item);
         }
     }
 

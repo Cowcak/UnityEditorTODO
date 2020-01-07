@@ -1,0 +1,26 @@
+.the-uxml-listview {
+    /* Provide the list view with an explict height for every row
+    so it can calculate how many items to actually display */
+    --unity-item-height: 16;
+    height: 200px;
+}
+
+.the-uxml-listview .itemName {
+    max-width: 400px;
+    display: flex;
+}
+
+.the-uxml-listview .unity-listview-item {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.the-uxml-listview .unity-object-field {
+    flex-direction: column;
+    flex-grow: 1;
+    max-width: 300px;
+}
+
+.the-uxml-listview ObjectField > Label {
+    display: none;
+}

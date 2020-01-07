@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditorTODO;
 using UnityEngine;
+using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
 [CreateAssetMenu]
@@ -10,8 +12,11 @@ public class TodoModel : ScriptableObject
         public int LastId;
         public List<Todo> Todos = new List<Todo>();
 
+        public UnityAction OnChange;
+
         private void OnEnable()
         {
+                OnChange = () => { };
         }
 
         public int AddTodo(string message, Object go, Object scene)
@@ -28,6 +33,8 @@ public class TodoModel : ScriptableObject
                 
                 Todos.Add(newTodo);
 
+                OnChange?.Invoke();
+                
                 return id;
         }
 
@@ -37,6 +44,7 @@ public class TodoModel : ScriptableObject
                 if (item != null)
                 {
                         item.Message = message;
+                        OnChange.Invoke();
                 }
         }
 
@@ -46,12 +54,7 @@ public class TodoModel : ScriptableObject
                 if (item != null)
                 {
                         Todos.Remove(item);
+                        OnChange.Invoke();
                 }
-        }
-
-        [ContextMenu("Dump")]
-        public void Dump()
-        {
-                Todos.ForEach(x => Debug.Log(x.Id));
         }
 }
