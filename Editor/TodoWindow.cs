@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEditorTODO;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -61,12 +61,12 @@ namespace Editor
         }
 
         private void LoadView()
-        {
+        {   
             rootVisualElement.Clear();
             var root = this.rootVisualElement;
             if (t == null)
             {
-                var view = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityEditorTODO/Editor/CreateModelDialog.uxml");
+                var view = Resources.Load<VisualTreeAsset>("CreateModelDialog");
                 view.CloneTree(root);
             
                 BindButton("createButton", CreateModel);
@@ -74,10 +74,10 @@ namespace Editor
             }
             else
             {
-                var view = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityEditorTODO/Editor/TodoList.uxml");
+                var view = Resources.Load<VisualTreeAsset>("TodoList");
                 view.CloneTree(root);
 
-                var styles = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/UnityEditorTODO/Editor/TodoList.uss");
+                var styles = Resources.Load<StyleSheet>("TodoList");
                 root.styleSheets.Add(styles);
                 
                 // Create some list of data, here simply numbers in interval [1, 1000]
@@ -91,8 +91,7 @@ namespace Editor
                     var todoMessage = property.FindPropertyRelative("Message");
                     var prefab = property.FindPropertyRelative("Prefab");
                     var scene = property.FindPropertyRelative("Scene");
-                    
-                    
+
                     items.Add(new Todo()
                     {
                         Id = id.intValue,
@@ -102,7 +101,7 @@ namespace Editor
                     });
                 }
 
-                var item = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityEditorTODO/Editor/TodoListItem.uxml");
+                var item = Resources.Load<VisualTreeAsset>("TodoListItem");
                 
                 // The "makeItem" function will be called as needed
                 // when the ListView needs more items to render
