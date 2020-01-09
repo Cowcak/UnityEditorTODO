@@ -1,9 +1,9 @@
-using System.Collections;
 using System.Linq;
 using UnityEditor;
+#if UNITY_EDITOR
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Object = System.Object;
 
 public static class TodoUtils
@@ -28,6 +28,8 @@ public static class TodoUtils
 #endif
     }
 
+#if  UNITY_EDITOR
+    
     public static void SelectObject(this ScriptableObject origin, Todo item)
     {
         if (item.Scene == null)
@@ -75,4 +77,6 @@ public static class TodoUtils
     {
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
     }
+    
+#endif
 }

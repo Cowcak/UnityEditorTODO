@@ -3,8 +3,8 @@ using System.Linq;
 using UnityEditor;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
-#endif
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
